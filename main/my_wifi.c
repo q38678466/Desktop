@@ -39,6 +39,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,int32_t ev
             case WIFI_EVENT_STA_CONNECTED:
                 ESP_LOGI("WIFI_EVENT", "WIFI_EVENT_STA_CONNECTED");
                 g_wifi_is_connected = true;
+                xSemaphoreGive(wifi_connected_semaphore);
                 break;
             case WIFI_EVENT_STA_DISCONNECTED:
                 //不处于配网模式下才进行重连操作
