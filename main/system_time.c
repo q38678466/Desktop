@@ -80,7 +80,12 @@ static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 }
 
 void  get_network_time()
-{
+{   
+    if(!g_wifi_is_connected)
+    {
+        ESP_LOGE(TAG, "wifi is not connected");
+        return;
+    }
     esp_err_t err;
     esp_http_client_config_t config = {
         .url = URL_TS,

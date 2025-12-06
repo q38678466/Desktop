@@ -40,6 +40,8 @@ typedef struct
   uint8_t is_wifi_config_mode; //是否正处于wifi配网模式
   char staN[32];
   char staP[32];
+  uint8_t standbyMode;
+  int anniversary_data;
 
 } _CONFIG_PARA;
 extern _CONFIG_PARA  cfgPara;

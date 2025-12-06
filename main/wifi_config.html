@@ -274,12 +274,32 @@
         dateInput.focus();
         return;
     }
-    const dateObject = new Date(selectedDateStr);
-    const unixTimestampSeconds = Math.floor(dateObject.getTime() / 1000);
-
-    console.log("选择的日期:", selectedDateStr);
-    console.log("转换后的 Unix 时间戳 (秒):", unixTimestampSeconds);
-    console.log("选择的待机模式:", standbyMode);
+    // 转换为 UTC 00:00:00 的时间戳
+    let unixTimestampSeconds;
+    try {
+        // 方法1：简单直接
+        const dateStrWithTime = `${selectedDateStr}T00:00:00`;
+        const dateObject = new Date(dateStrWithTime);
+        
+        // 验证日期是否有效
+        if (isNaN(dateObject.getTime())) {
+            throw new Error("无效的日期格式");
+        }
+        
+        unixTimestampSeconds = Math.floor(dateObject.getTime() / 1000);
+        
+        // 调试信息
+        console.log("选择的日期:", selectedDateStr);
+        console.log("时间戳 (秒):", unixTimestampSeconds);
+        console.log("UTC 时间:", new Date(unixTimestampSeconds * 1000).toUTCString());
+        console.log("本地时间:", new Date(unixTimestampSeconds * 1000).toString());
+        console.log("待机模式:", standbyMode);
+        
+    } catch (error) {
+        console.error("日期转换错误:", error);
+        showDialog("❌ 日期格式错误");
+        return;
+    }
 
     try {
       const res = await fetch("/savesettings", {

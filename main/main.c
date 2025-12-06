@@ -27,6 +27,8 @@
 #include "my_wifi.h"
 #include "my_http_server.h"
 #include "system_time.h"
+
+#include "app_getweather.h"
 #define TAG "main"
 
 
@@ -101,11 +103,12 @@ void epaper_main_task(void *pvParameter)
             EPD_ShowWatch(12,20,time_val,4,2,48,BLACK);
             EPD_ShowNum_Two(135,48,time_sec,12,BLACK);
             //显示日期
-            EPD_ShowNum_Two(12,5,tm_now.tm_mon+1,16,BLACK);
-            EPD_ShowChinese(12+16+1,5,(unsigned char*)"月",16,BLACK);            
-            EPD_ShowNum_Two(12+16+16+5, 5, tm_now.tm_mday, 16, BLACK);
-            EPD_ShowChinese(12+16+16+16+5, 5, (unsigned char*)"日", 16, BLACK);
-            show_weekday(12+16+16+16+16+10, 5, tm_now.tm_wday);
+            EPD_ShowNum_Two(15, 5,(uint16_t)tm_now.tm_mon+1, 16, BLACK);
+            EPD_ShowChinese(15+16+1,5,(unsigned char*)"月",16,BLACK);            
+            EPD_ShowNum_Two(15+16+16+5, 5, tm_now.tm_mday, 16, BLACK);
+            EPD_ShowChinese(15+16+16+16+5, 5, (unsigned char*)"日", 16, BLACK);
+            show_weekday(15+16+16+16+16+10, 5, tm_now.tm_wday);
+            //小人物根据温度显示表情状态
             if(temperature>30.0){
                 EPD_ShowPicture(97,72,53,80,gImage_hot,BLACK);
             }else if(temperature<20.0){
@@ -113,14 +116,14 @@ void epaper_main_task(void *pvParameter)
             }else{
                 EPD_ShowPicture(97,72,53,80,gImage_comfor,BLACK);
             }
-
+            //显示wifi连接状态
             if(g_wifi_is_connected){
                 EPD_ShowPicture(125,0,24,24,gImage_wifi,BLACK);
             }
             else{
-                EPD_ClearWindows(125+24,24,125,0,WHITE);
+                EPD_ShowPicture(125,0,24,24,gImage_null,BLACK);
             }
-            EPD_DrawLine(0, 70, 90, 70, BLACK);
+
             EPD_Display(ImageBW);
             EPD_PartUpdate();
             xSemaphoreGive(epd_mutex); // 释放锁
@@ -136,7 +139,15 @@ void enter_deep_sleep_cb(void)
     if (xSemaphoreTake(epd_mutex, portMAX_DELAY) == pdTRUE) {
         Paint_Clear(WHITE);
         // EPD_ShowPicture(0,0,152,152,gImage_cat,BLACK);
-        EPD_ShowChinese(32, 0, (unsigned char*)"温度", 16, BLACK);
+        // EPD_ShowChinese(32, 0, (unsigned char*)"温度", 16, BLACK);
+        if(cfgPara.standbyMode == 0)//天气预报
+        {
+            
+        }
+        else//纪念日
+        {
+
+        }
         EPD_Display(ImageBW);
         EPD_PartUpdate();
         EPD_DeepSleep();

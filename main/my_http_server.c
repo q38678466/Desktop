@@ -12,6 +12,7 @@
 
 
 #include "device_config.h"
+//
 
 static const char *TAG = "http_server";
 
@@ -198,8 +199,9 @@ esp_err_t connect_post_handler(httpd_req_t *req) {
     ESP_LOGE(TAG, "WiFi Connection Failed");
     const char *json_response = "{\"status\":\"fail\"}";
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, json_response, strlen(json_response));
-    printf("json_respinse : %s\n",json_response);
+    httpd_resp_send(req, json_response, strlen(json_response));;
+
+    cJSON_free(root);
 
     return ESP_OK;
 }
@@ -207,7 +209,7 @@ esp_err_t connect_post_handler(httpd_req_t *req) {
 
 esp_err_t savesettings_post_handler(httpd_req_t *req)
 {
-    char buf[200];
+    char buf[64];
     int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
     if (len <= 0) {
         ESP_LOGW(TAG, "No POST data received");
@@ -216,10 +218,34 @@ esp_err_t savesettings_post_handler(httpd_req_t *req)
     }
     buf[len] = '\0';
     ESP_LOGI(TAG, "Received POST data: %s", buf);
+    cJSON *root = cJSON_Parse(buf);
+    if (root == NULL) {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        ESP_LOGE(TAG,"JSON解析错误: %s\n", error_ptr ? error_ptr : "未知错误");
+        return ESP_FAIL;
+    }
+    // 2. 提取ssid字段
+    cJSON *data_obj = cJSON_GetObjectItemCaseSensitive(root, "date");
+    if (!cJSON_IsNumber(data_obj)) {
+        ESP_LOGE(TAG,"未找到data或类型错误\n");
+        return ESP_FAIL;
+    }
+    cJSON *sleep_mod_obj = cJSON_GetObjectItemCaseSensitive(root, "standbyMode");
+    if (!cJSON_IsString(sleep_mod_obj) && (sleep_mod_obj->valuestring != NULL)) {
+        ESP_LOGE(TAG,"未找到standbyMode或类型错误\n");
+        return ESP_FAIL;
+    }
+    
+    ESP_LOGI(TAG, "date: %d", data_obj->valueint);
+    ESP_LOGI(TAG, "standbyMode: %s", sleep_mod_obj->valuestring);
+
+
+
 
     const char *json_response = "{\"status\":\"ok\"}";
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, json_response, strlen(json_response));
+    cJSON_free(root);
     return ESP_OK;
 }
 

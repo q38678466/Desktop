@@ -87,6 +87,8 @@ void config_restore()
     cfgPara.is_wifi_config_mode = 0;
 	strcpy(cfgPara.staN, "");
     strcpy(cfgPara.staP, "");
+    cfgPara.anniversary_data = 1643731200; //默认2020年2月2日
+    cfgPara.standbyMode = 0;  //0:显示天气 1:显示纪念日
 	config_save();
 
 }

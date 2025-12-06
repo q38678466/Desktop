@@ -12,6 +12,7 @@
 #include "lwip/err.h"
 
 #include "app_config.h"
+#include "app_getweather.h"
 
 #define TAG "my_wifi"
 SemaphoreHandle_t wifi_connected_semaphore = NULL;
@@ -40,6 +41,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,int32_t ev
                 ESP_LOGI("WIFI_EVENT", "WIFI_EVENT_STA_CONNECTED");
                 g_wifi_is_connected = true;
                 xSemaphoreGive(wifi_connected_semaphore);
+                get_network_weather();
                 break;
             case WIFI_EVENT_STA_DISCONNECTED:
                 //不处于配网模式下才进行重连操作
@@ -150,7 +152,6 @@ void enter_wifi_config_mode_reset()
 {
     cfgPara.is_wifi_config_mode = 1;
     config_save();
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
     esp_restart();
 }
 
