@@ -192,29 +192,52 @@ esp_err_t connect_post_handler(httpd_req_t *req) {
         const char *json_response = "{\"status\":\"ok\"}";
         httpd_resp_set_type(req, "application/json");
         httpd_resp_send(req, json_response, strlen(json_response));
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-        esp_restart();
+        return ESP_OK;
     }
     // 2. 返回 JSON 默认失败状态
+    ESP_LOGE(TAG, "WiFi Connection Failed");
     const char *json_response = "{\"status\":\"fail\"}";
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, json_response, strlen(json_response));
+    printf("json_respinse : %s\n",json_response);
 
+    return ESP_OK;
+}
+
+
+esp_err_t savesettings_post_handler(httpd_req_t *req)
+{
+    char buf[200];
+    int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
+    if (len <= 0) {
+        ESP_LOGW(TAG, "No POST data received");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    buf[len] = '\0';
+    ESP_LOGI(TAG, "Received POST data: %s", buf);
+
+    const char *json_response = "{\"status\":\"ok\"}";
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, json_response, strlen(json_response));
     return ESP_OK;
 }
 
 httpd_handle_t start_webserver(bool dns_enable)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.stack_size = 4096 *2;
     httpd_handle_t server = NULL;
 
     if (httpd_start(&server, &config) == ESP_OK) {
         httpd_uri_t root = { .uri = "/", .method = HTTP_GET, .handler = root_get_handler };
         httpd_uri_t scan = { .uri = "/scan", .method = HTTP_GET, .handler = scan_get_handler };
         httpd_uri_t connect = { .uri = "/connect", .method = HTTP_POST, .handler = connect_post_handler };
+        httpd_uri_t savesettings = { .uri = "/savesettings", .method = HTTP_POST, .handler = savesettings_post_handler };
         httpd_register_uri_handler(server, &root);
         httpd_register_uri_handler(server, &scan);
         httpd_register_uri_handler(server, &connect);
+        httpd_register_uri_handler(server, &savesettings);
     }
     register_captive_portal_handlers(server);
 
