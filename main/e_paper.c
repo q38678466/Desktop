@@ -682,6 +682,8 @@ void EPD_ShowChinese16x16(u16 x, u16 y, u8 *s, u8 sizey, u16 color)
                 {  
                     if(tfont16[k].Msk[i] & (0x01 << j))  
                         Paint_SetPixel(x, y, color);
+                    else
+                        Paint_SetPixel(x, y, !color);  // 添加这行！
                     x++;
                     if((x - x0) == sizey)
                     {
@@ -691,7 +693,7 @@ void EPD_ShowChinese16x16(u16 x, u16 y, u8 *s, u8 sizey, u16 color)
                     }
                 }
             }
-            break;  // 找到后立即退出
+            break;
         }
     }
 }
